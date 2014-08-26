@@ -54,18 +54,18 @@ class RelationalQuery extends Program with ProgramDescription with Serializable 
   
   def getScalaPlan(numSubTasks: Int, ordersInput: String, lineItemsInput: String, ordersOutput: String, status: Char = 'F', minYear: Int = 1993, priority: String = "5") = {
     
-    // ORDER intput: parse as CSV and select relevant fields
+    // ORDER input: parse as CSV and select relevant fields
     val orders = DataSource(ordersInput, CsvInputFormat[(Int, String, String, String, String, String, String, Int)]("\n", '|'))
                          .map { t => Order(t._1, t._3.charAt(0), t._5.substring(0,4).toInt, t._6, t._8) }
       
-    // ORDER intput: parse as CSV and select relevant fields
+    // ORDER input: parse as CSV and select relevant fields
     val lineItems = DataSource(lineItemsInput, CsvInputFormat[(Int, String, String, String, String, Double)]("\n", '|'))
                          .map { t => LineItem(t._1, t._6) }
     
     // filter the orders input
     val filteredOrders = orders filter { o => o.status == status && o.year > minYear && o.orderPriority.startsWith(priority) }
     
-    // join the filteres result with the lineitem input
+    // join the filtered result with the lineitem input
     val prioritizedItems = filteredOrders join lineItems where { _.orderId } isEqualTo { _.orderId } map { (o, li) => PrioritizedOrder(o.orderId, o.shipPriority, li.extendedPrice) }
     
     // group by and sum the joined data
